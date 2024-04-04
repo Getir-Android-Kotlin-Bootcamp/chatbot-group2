@@ -49,4 +49,7 @@ dependencies {
     // Retrofit dependencies
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
+
+    // Gemini dependencies
+    implementation(libs.gemini)
 }

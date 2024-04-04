@@ -6,14 +6,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.ViewModelProvider
 import com.google.ai.client.generativeai.GenerativeModel
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
-    val apiKey = "AIzaSyClVhDkfI5KjDAejX4ir0Al6S_sXcOT7Sg"
-
+    private lateinit var geminiViewModel: GeminiViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,21 +24,15 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        geminiApi()
-    }
 
-    fun geminiApi() {
-        val generativeModel = GenerativeModel(
-            modelName = "gemini-pro",
-            apiKey = apiKey,
-        )
+        geminiViewModel = ViewModelProvider(this)[GeminiViewModel::class.java]
 
-        val prompt = "Which LLM are you?"
-        MainScope().launch {
-            val response = generativeModel.generateContent(prompt)
-            response.text?.let { Log.d("response", it) }
+        val prompt = "What are you?"
+
+        geminiViewModel.response.observe(this) { response ->
+            response?.let { Log.d("response", it) }
         }
+        geminiViewModel.fetchData(prompt)
+
     }
-
-
 }

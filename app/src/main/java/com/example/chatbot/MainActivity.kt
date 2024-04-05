@@ -1,38 +1,57 @@
 package com.example.chatbot
 
 import android.os.Bundle
-import android.util.Log
-import androidx.activity.enableEdgeToEdge
+import android.view.View
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ProgressBar
+import android.widget.ScrollView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import com.google.ai.client.generativeai.GenerativeModel
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
-
+    private lateinit var editTextUserInput: EditText
+    private lateinit var buttonSubmit: Button
+    private lateinit var chatOutputView: TextView
+    private lateinit var scrollViewChat: ScrollView
+    private lateinit var progressBarTyping: ProgressBar
     private lateinit var geminiViewModel: GeminiViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_main)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
+
+        editTextUserInput = findViewById(R.id.editTextUserInput)
+        buttonSubmit = findViewById(R.id.buttonSubmit)
+        chatOutputView = findViewById(R.id.chatOutputView)
+        scrollViewChat = findViewById(R.id.scrollViewChat)
+        progressBarTyping = findViewById(R.id.progressBarTyping)
 
         geminiViewModel = ViewModelProvider(this)[GeminiViewModel::class.java]
 
-        val prompt = "What are you?"
-
-        geminiViewModel.response.observe(this) { response ->
-            response?.let { Log.d("response", it) }
+        buttonSubmit.setOnClickListener {
+            val userInput = editTextUserInput.text.toString()
+            if (userInput.isNotEmpty()) {
+                showTypingIndicator()
+                geminiViewModel.fetchData(userInput)
+                editTextUserInput.setText("")
+            }
         }
-        geminiViewModel.fetchData(prompt)
 
+        geminiViewModel.response.observe(this, Observer { response ->
+            chatOutputView.append("\nUser: ${editTextUserInput.text}\nBot: $response")
+            hideTypingIndicator()
+            scrollViewChat.post { scrollViewChat.fullScroll(ScrollView.FOCUS_DOWN) }
+        })
+    }
+
+    private fun showTypingIndicator() {
+        progressBarTyping.visibility = View.VISIBLE
+    }
+
+    private fun hideTypingIndicator() {
+        progressBarTyping.visibility = View.GONE
     }
 }
